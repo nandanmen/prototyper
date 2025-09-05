@@ -1,11 +1,11 @@
-import { motion, useDragControls } from "motion/react";
+import { motion } from "motion/react";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import type { HtmlNode } from "./types";
 import { useCanvasContext } from "./context";
 import clsx from "clsx";
 
 export function Node({ node }: { node: HtmlNode }) {
-	const dragControls = useDragControls();
+	// const dragControls = useDragControls();
 	const { tool, setTool, activeNode, setActiveNode } = useCanvasContext();
 	const ref = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -85,7 +85,7 @@ export function Node({ node }: { node: HtmlNode }) {
 	);
 }
 
-function ArrowSvg() {
+/* function ArrowSvg() {
 	return (
 		<svg
 			width="20"
@@ -109,3 +109,4 @@ function ArrowSvg() {
 		</svg>
 	);
 }
+ */
