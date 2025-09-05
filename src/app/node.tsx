@@ -5,84 +5,88 @@ import { useCanvasContext } from "./context";
 import clsx from "clsx";
 
 export function Node({ node }: { node: HtmlNode }) {
-	// const dragControls = useDragControls();
-	const { tool, setTool, activeNode, setActiveNode } = useCanvasContext();
-	const ref = useRef<HTMLDivElement>(null);
-	const inputRef = useRef<HTMLInputElement>(null);
-	const [element, setElement] = useState<HTMLElement | null>(null);
+  const { tool, setTool, activeNode, setActiveNode } = useCanvasContext();
+  const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [element, setElement] = useState<HTMLElement | null>(null);
 
-	useEffect(() => {
-		if (!ref.current) return;
-		ref.current.innerHTML = node.html;
-		setElement(ref.current.querySelector(":first-child") as HTMLElement);
-	}, [node.html]);
+  useEffect(() => {
+    if (!ref.current) return;
+    ref.current.innerHTML = node.html;
+    setElement(ref.current.querySelector(":first-child") as HTMLElement);
+  }, [node.html]);
 
-	const isActive = activeNode === node.id;
+  const isActive = activeNode === node.id;
 
-	useEffect(() => {
-		if (isActive) {
-			inputRef.current?.focus();
-		}
-	}, [isActive]);
+  useEffect(() => {
+    if (isActive) {
+      inputRef.current?.focus();
+    }
+  }, [isActive]);
 
-	return (
-		<motion.button
-			data-node-id={node.id}
-			className={clsx("text-left absolute", isActive && "z-10")}
-			drag
-			// dragControls={dragControls}
-			dragMomentum={false}
-			key={node.id}
-		>
-			<p className="absolute bottom-full font-mono text-xs text-neutral-500 mb-1">
-				{node.id.split("-").at(0)?.slice(0, 4)}
-			</p>
-			{/* {isActive && (
+  return (
+    <motion.button
+      data-node-id={node.id}
+      className={clsx("text-left absolute", isActive && "z-10")}
+      drag
+      dragMomentum={false}
+      key={node.id}
+    >
+      <p className="absolute bottom-full font-mono text-xs text-neutral-500 mb-1">
+        {node.id.split("-").at(0)?.slice(0, 4)}
+      </p>
+      {/* {isActive && (
 				<div className="absolute top-full mt-2 z-10 left-1/2 -translate-x-1/2">
 					<ArrowSvg />
 				</div>
 			)} */}
-			<input
-				ref={inputRef}
-				className={clsx(
-					"absolute top-full mt-2 rounded-lg ring ring-neutral-950/10 bg-neutral-50 h-9 px-3.5 font-mono shadow-black/5 text-xs focus-visible:outline-none transition-all origin-top-left",
-					isActive ? "scale-100 opacity-100" : "scale-95 opacity-0",
-				)}
-				type="text"
-				style={
-					{
-						fieldSizing: "content",
-					} as CSSProperties
-				}
-				defaultValue={element?.className}
-				onChange={(e) => {
-					if (!element) return;
-					const newClassName = e.target.value || "bg-white size-[100px]";
-					element.className = newClassName;
-				}}
-			/>
-			{/* biome-ignore lint/a11y/useKeyWithClickEvents: only capturing the click event here */}
-			<div
-				ref={ref}
-				className={clsx(
-					"w-max ring-blue-500 hover:not-has-hover:ring",
-					"[&_*]:hover:not-has-hover:outline [&_*]:focus:outline [&_*]:outline-blue-500",
-					// activeNode === node.id ? "ring-2" : "hover:ring",
-				)}
-				onMouseDown={() => setActiveNode(node.id)}
-				// onPointerDown={(e) => dragControls.start(e, { snapToCursor: true })}
-				onClick={(e) => {
-					if (tool !== "text") return;
-					const parent = e.target as HTMLElement;
-					const newText = document.createElement("p");
-					newText.contentEditable = "true";
-					parent.appendChild(newText);
-					newText.focus();
-					setTool(null);
-				}}
-			/>
-		</motion.button>
-	);
+      <input
+        ref={inputRef}
+        className={clsx(
+          "absolute top-full mt-2 rounded-lg ring ring-neutral-950/10 bg-neutral-50 h-9 px-3.5 font-mono shadow-black/5 text-xs focus-visible:outline-none transition-all origin-top-left",
+          isActive ? "scale-100 opacity-100" : "scale-95 opacity-0",
+        )}
+        type="text"
+        style={
+          {
+            fieldSizing: "content",
+          } as CSSProperties
+        }
+        defaultValue={element?.className}
+        onChange={(e) => {
+          if (!element) return;
+          const newClassName = e.target.value || "bg-white size-[100px]";
+          element.className = newClassName;
+        }}
+      />
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: only capturing the click event here */}
+      <div
+        ref={ref}
+        className={clsx(
+          "w-max ring-blue-500 hover:not-has-hover:ring",
+          "[&_*]:hover:not-has-hover:outline [&_*]:focus:outline [&_*]:outline-blue-500",
+          // activeNode === node.id ? "ring-2" : "hover:ring",
+        )}
+        onMouseDown={() => setActiveNode(node.id)}
+        onClick={(e) => {
+          e.preventDefault();
+          const parent = e.target as HTMLElement;
+          if (tool === "text") {
+            const newText = document.createElement("p");
+            newText.contentEditable = "true";
+            parent.appendChild(newText);
+            newText.focus();
+            setTool(null);
+          } else {
+            if (inputRef.current) {
+              inputRef.current.value = parent.className;
+            }
+            setElement(parent);
+          }
+        }}
+      />
+    </motion.button>
+  );
 }
 
 /* function ArrowSvg() {
