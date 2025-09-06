@@ -11,7 +11,7 @@ export function Node({ node }: { node: HtmlNode }) {
     actions: { setTool, setActiveNode },
   } = useStore();
   const ref = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [element, setElement] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -63,13 +63,13 @@ export function Node({ node }: { node: HtmlNode }) {
       <p className="absolute bottom-full font-mono text-xs text-neutral-500 mb-1">
         {node.id.split("-").at(0)?.slice(0, 4)}
       </p>
-      <input
+      <textarea
         ref={inputRef}
         className={clsx(
-          "absolute top-full mt-2 rounded-lg ring ring-neutral-950/10 bg-neutral-50 h-9 px-3.5 font-mono shadow-black/5 text-xs focus-visible:outline-none transition-all origin-top left-1/2 -translate-x-1/2",
+          "absolute top-full mt-2 rounded-lg ring ring-neutral-950/10 bg-neutral-50 min-h-9 w-max max-w-[350px] px-3.5 py-2.5 font-mono text-xs focus-visible:outline-none transition-all origin-top left-1/2 -translate-x-1/2 resize-none",
           isActive ? "scale-100 opacity-100" : "scale-95 opacity-0",
         )}
-        type="text"
+        spellCheck={false}
         placeholder="Type a Tailwind class..."
         style={
           {
@@ -87,7 +87,9 @@ export function Node({ node }: { node: HtmlNode }) {
         className={clsx(
           "w-max ring-blue-500 hover:not-has-hover:ring",
           "[&_*]:hover:not-has-hover:outline [&_*]:focus:outline [&_*]:outline-blue-500",
-          isActive ? "ring-2" : "hover:ring",
+          isActive && element !== ref.current?.firstChild
+            ? "ring-2"
+            : "hover:ring",
         )}
         onMouseDown={() => setActiveNode(node.id)}
         onClick={(e) => {
@@ -116,29 +118,3 @@ export function Node({ node }: { node: HtmlNode }) {
     </motion.button>
   );
 }
-
-/* function ArrowSvg() {
-	return (
-		<svg
-			width="20"
-			height="10"
-			viewBox="0 0 20 10"
-			fill="none"
-			aria-hidden="true"
-		>
-			<path
-				d="M9.66437 2.60207L4.80758 6.97318C4.07308 7.63423 3.11989 8 2.13172 8H0V10H20V8H18.5349C17.5468 8 16.5936 7.63423 15.8591 6.97318L11.0023 2.60207C10.622 2.2598 10.0447 2.25979 9.66437 2.60207Z"
-				className="fill-[canvas]"
-			/>
-			<path
-				d="M8.99542 1.85876C9.75604 1.17425 10.9106 1.17422 11.6713 1.85878L16.5281 6.22989C17.0789 6.72568 17.7938 7.00001 18.5349 7.00001L15.89 7L11.0023 2.60207C10.622 2.2598 10.0447 2.2598 9.66436 2.60207L4.77734 7L2.13171 7.00001C2.87284 7.00001 3.58774 6.72568 4.13861 6.22989L8.99542 1.85876Z"
-				className="fill-gray-200"
-			/>
-			<path
-				d="M10.3333 3.34539L5.47654 7.71648C4.55842 8.54279 3.36693 9 2.13172 9H0V8H2.13172C3.11989 8 4.07308 7.63423 4.80758 6.97318L9.66437 2.60207C10.0447 2.25979 10.622 2.2598 11.0023 2.60207L15.8591 6.97318C16.5936 7.63423 17.5468 8 18.5349 8H20V9H18.5349C17.2998 9 16.1083 8.54278 15.1901 7.71648L10.3333 3.34539Z"
-				fill="none"
-			/>
-		</svg>
-	);
-}
- */
