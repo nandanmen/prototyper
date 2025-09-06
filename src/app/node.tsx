@@ -39,6 +39,17 @@ export function Node({ node }: { node: HtmlNode }) {
     }
   }, [isActive]);
 
+  useEffect(() => {
+    if (!element) return;
+    if (!isActive) return;
+    element.style.outlineWidth = "1px";
+    element.style.outlineStyle = "solid";
+    return () => {
+      element.style.outlineWidth = "";
+      element.style.outlineStyle = "";
+    };
+  }, [element, isActive]);
+
   return (
     <motion.button
       data-node-id={node.id}
@@ -59,7 +70,7 @@ export function Node({ node }: { node: HtmlNode }) {
         ref={inputRef}
         className={clsx(
           "absolute top-full mt-2 rounded-lg ring ring-neutral-950/10 bg-neutral-50 h-9 px-3.5 font-mono shadow-black/5 text-xs focus-visible:outline-none transition-all origin-top left-1/2 -translate-x-1/2",
-          isActive ? "scale-100 opacity-100" : "scale-95 opacity-0"
+          isActive ? "scale-100 opacity-100" : "scale-95 opacity-0",
         )}
         type="text"
         placeholder="Type a Tailwind class..."
@@ -78,8 +89,8 @@ export function Node({ node }: { node: HtmlNode }) {
         ref={ref}
         className={clsx(
           "w-max ring-blue-500 hover:not-has-hover:ring",
-          "[&_*]:hover:not-has-hover:outline [&_*]:focus:outline [&_*]:outline-blue-500"
-          // activeNode === node.id ? "ring-2" : "hover:ring",
+          "[&_*]:hover:not-has-hover:outline [&_*]:focus:outline [&_*]:outline-blue-500",
+          isActive ? "ring-2" : "hover:ring",
         )}
         onMouseDown={() => setActiveNode(node.id)}
         onClick={(e) => {

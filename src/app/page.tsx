@@ -98,7 +98,7 @@ function Canvas({
   setNodes: Dispatch<SetStateAction<HtmlNode[]>>;
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const { tool, setTool } = useCanvasContext();
+  const { tool, setTool, setActiveNode } = useCanvasContext();
   return (
     <div className="isolate relative h-full">
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
@@ -106,6 +106,14 @@ function Canvas({
         ref={canvasRef}
         className="relative flex items-center justify-center h-full"
         onClick={(e) => {
+          if (!tool) {
+            if (
+              e.target instanceof HTMLElement &&
+              e.target.closest("[data-node-id]")
+            )
+              return;
+            setActiveNode(null);
+          }
           if (tool !== "add") return;
           if (e.target !== canvasRef.current) return;
           setNodes((p) => [
