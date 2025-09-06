@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Node } from "./node";
 import type { HtmlNode } from "./types";
-import { CanvasProvider } from "./context";
+import { CanvasProvider, useCanvasContext } from "./context";
 import { Toolbar } from "./toolbar";
+import { Tree } from "./tree";
 
 export default function Home() {
   const [nodes, setNodes] = useState<HtmlNode[]>([]);
@@ -27,39 +28,57 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="h-screen grid grid-cols-[1fr_350px]">
-      <div className="relative bg-neutral-100 h-full">
-        <CanvasProvider>
-          <div className="isolate relative flex items-center justify-center h-full">
-            {nodes.map((node) => (
-              <Node node={node} key={node.id} />
+    <div className="h-screen">
+      <aside className="fixed h-screen w-80 flex flex-col left-0 top-0 z-10 p-10 pr-0">
+        <div className="ring-neutral-950/10 ring grow bg-white rounded-xl overflow-auto shadow-lg shadow-black/5">
+          <ul className="px-6 py-3 divide-y divide-neutral-950/10">
+            {nodes.map((n) => (
+              <li className="py-3" key={n.id}>
+                <Tree nodeId={n.id} />
+              </li>
             ))}
-          </div>
-          <Toolbar
-            onAddNode={() => {
-              setNodes((p) => [
-                ...p,
-                {
-                  id: crypto.randomUUID(),
-                  html: "<div class='bg-white size-[100px]'></div>",
-                },
-              ]);
-            }}
-          />
-        </CanvasProvider>
-      </div>
-      <aside className="border-l border-neutral-950/10 h-screen overflow-hidden">
-        {nodes.map((n) => {
-          const el = document.querySelector(
-            `[data-node-id="${n.id}"] > div > :first-child`,
-          );
-          return (
-            <div key={n.id}>
-              <div className="font-mono text-xs">{el?.outerHTML}</div>
-            </div>
-          );
-        })}
+          </ul>
+        </div>
       </aside>
+      <CanvasProvider>
+        <Canvas nodes={nodes} setNodes={setNodes} />
+      </CanvasProvider>
+    </div>
+  );
+}
+
+function Canvas({
+  nodes,
+  setNodes,
+}: {
+  nodes: HtmlNode[];
+  setNodes: Dispatch<SetStateAction<HtmlNode[]>>;
+}) {
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const { tool, setTool } = useCanvasContext();
+  return (
+    <div className="relative bg-neutral-100 h-full">
+      <div
+        ref={canvasRef}
+        className="isolate relative flex items-center justify-center h-full"
+        onClick={(e) => {
+          if (tool !== "add") return;
+          if (e.target !== canvasRef.current) return;
+          setNodes((p) => [
+            ...p,
+            {
+              id: crypto.randomUUID(),
+              html: "<div class='bg-white size-[100px]'></div>",
+            },
+          ]);
+          setTool(null);
+        }}
+      >
+        {nodes.map((node) => (
+          <Node node={node} key={node.id} />
+        ))}
+      </div>
+      <Toolbar />
     </div>
   );
 }

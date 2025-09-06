@@ -3,6 +3,7 @@ import { type CSSProperties, useEffect, useRef, useState } from "react";
 import type { HtmlNode } from "./types";
 import { useCanvasContext } from "./context";
 import clsx from "clsx";
+import { onHighlightElement } from "./event";
 
 export function Node({ node }: { node: HtmlNode }) {
   const { tool, setTool, activeNode, setActiveNode } = useCanvasContext();
@@ -17,6 +18,20 @@ export function Node({ node }: { node: HtmlNode }) {
   }, [node.html]);
 
   const isActive = activeNode === node.id;
+
+  useEffect(() => {
+    return onHighlightElement((e) => {
+      if (e.detail.nodeId === node.id) {
+        setActiveNode(node.id);
+        setElement(e.detail.element);
+      }
+    });
+  }, [node.id, setActiveNode]);
+
+  useEffect(() => {
+    if (!inputRef.current) return;
+    inputRef.current.value = element?.className ?? "";
+  }, [element]);
 
   useEffect(() => {
     if (isActive) {
@@ -43,20 +58,19 @@ export function Node({ node }: { node: HtmlNode }) {
       <input
         ref={inputRef}
         className={clsx(
-          "absolute top-full mt-2 rounded-lg ring ring-neutral-950/10 bg-neutral-50 h-9 px-3.5 font-mono shadow-black/5 text-xs focus-visible:outline-none transition-all origin-top-left",
-          isActive ? "scale-100 opacity-100" : "scale-95 opacity-0",
+          "absolute top-full mt-2 rounded-lg ring ring-neutral-950/10 bg-neutral-50 h-9 px-3.5 font-mono shadow-black/5 text-xs focus-visible:outline-none transition-all origin-top left-1/2 -translate-x-1/2",
+          isActive ? "scale-100 opacity-100" : "scale-95 opacity-0"
         )}
         type="text"
+        placeholder="Type a Tailwind class..."
         style={
           {
             fieldSizing: "content",
           } as CSSProperties
         }
-        defaultValue={element?.className}
         onChange={(e) => {
           if (!element) return;
-          const newClassName = e.target.value || "bg-white size-[100px]";
-          element.className = newClassName;
+          element.className = e.target.value;
         }}
       />
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: only capturing the click event here */}
@@ -64,7 +78,7 @@ export function Node({ node }: { node: HtmlNode }) {
         ref={ref}
         className={clsx(
           "w-max ring-blue-500 hover:not-has-hover:ring",
-          "[&_*]:hover:not-has-hover:outline [&_*]:focus:outline [&_*]:outline-blue-500",
+          "[&_*]:hover:not-has-hover:outline [&_*]:focus:outline [&_*]:outline-blue-500"
           // activeNode === node.id ? "ring-2" : "hover:ring",
         )}
         onMouseDown={() => setActiveNode(node.id)}
@@ -77,10 +91,15 @@ export function Node({ node }: { node: HtmlNode }) {
             parent.appendChild(newText);
             newText.focus();
             setTool(null);
-          } else {
-            if (inputRef.current) {
-              inputRef.current.value = parent.className;
+          } else if (tool === "add") {
+            if (getComputedStyle(parent).padding === "0px") {
+              parent.classList.add("p-2");
             }
+            const newDiv = document.createElement("div");
+            newDiv.className = "size-[100px]";
+            parent.appendChild(newDiv);
+            setTool(null);
+          } else {
             setElement(parent);
           }
         }}
