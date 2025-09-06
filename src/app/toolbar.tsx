@@ -1,16 +1,19 @@
 "use client";
 
 import { clsx } from "clsx";
-import { useCanvasContext } from "./context";
+import { useStore } from "./store";
 
 export function Toolbar() {
-  const { setTool, tool } = useCanvasContext();
+  const {
+    store: { tool },
+    actions: { setTool },
+  } = useStore();
   return (
     <div className="absolute bottom-16 w-fit rounded-xl ring ring-neutral-950/10 shadow-lg shadow-black/5 h-12 bg-white left-1/2 -translate-x-1/2 flex p-2 gap-2">
       <button
         className={clsx(
           "flex items-center justify-center aspect-square rounded-md",
-          tool === "add" ? "bg-blue-500 text-white" : "hover:bg-neutral-100"
+          tool === "add" ? "bg-blue-500 text-white" : "hover:bg-neutral-100",
         )}
         type="button"
         onClick={() => setTool("add")}
@@ -34,7 +37,7 @@ export function Toolbar() {
       <button
         className={clsx(
           "flex items-center justify-center aspect-square rounded-md",
-          tool === "text" ? "bg-blue-500 text-white" : "hover:bg-neutral-100"
+          tool === "text" ? "bg-blue-500 text-white" : "hover:bg-neutral-100",
         )}
         type="button"
         onClick={() => setTool("text")}

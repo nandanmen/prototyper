@@ -1,12 +1,15 @@
 import { motion } from "motion/react";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import type { HtmlNode } from "./types";
-import { useCanvasContext } from "./context";
 import clsx from "clsx";
 import { onHighlightElement } from "./event";
+import { useStore } from "./store";
 
 export function Node({ node }: { node: HtmlNode }) {
-  const { tool, setTool, activeNode, setActiveNode } = useCanvasContext();
+  const {
+    store: { tool, activeNode },
+    actions: { setTool, setActiveNode },
+  } = useStore();
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [element, setElement] = useState<HTMLElement | null>(null);
@@ -31,13 +34,12 @@ export function Node({ node }: { node: HtmlNode }) {
   useEffect(() => {
     if (!inputRef.current) return;
     inputRef.current.value = element?.className ?? "";
-  }, [element]);
-
-  useEffect(() => {
     if (isActive) {
-      inputRef.current?.focus();
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 10);
     }
-  }, [isActive]);
+  }, [element, isActive]);
 
   useEffect(() => {
     if (!element) return;
@@ -61,11 +63,6 @@ export function Node({ node }: { node: HtmlNode }) {
       <p className="absolute bottom-full font-mono text-xs text-neutral-500 mb-1">
         {node.id.split("-").at(0)?.slice(0, 4)}
       </p>
-      {/* {isActive && (
-				<div className="absolute top-full mt-2 z-10 left-1/2 -translate-x-1/2">
-					<ArrowSvg />
-				</div>
-			)} */}
       <input
         ref={inputRef}
         className={clsx(
@@ -109,6 +106,7 @@ export function Node({ node }: { node: HtmlNode }) {
             const newDiv = document.createElement("div");
             newDiv.className = "size-[100px]";
             parent.appendChild(newDiv);
+            setElement(newDiv);
             setTool(null);
           } else {
             setElement(parent);
