@@ -2,12 +2,29 @@
 
 import { clsx } from "clsx";
 import { useStore } from "./store";
+import { useEffect } from "react";
 
 export function Toolbar() {
   const {
     store: { tool },
     actions: { setTool },
   } = useStore();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key === "T") {
+        return setTool("text");
+      }
+      if (e.key === "Escape") {
+        return setTool(null);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [setTool]);
+
   return (
     <div className="absolute bottom-16 w-fit rounded-xl ring ring-neutral-950/10 shadow-lg shadow-black/5 h-12 bg-white left-1/2 -translate-x-1/2 flex p-2 gap-2">
       <button

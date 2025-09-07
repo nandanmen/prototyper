@@ -62,7 +62,7 @@ export default function Home() {
           collapsible
           ref={sidebarRef}
         >
-          <aside className="border-l h-full border-neutral-950/10">
+          <aside className="border-l h-full border-neutral-950/10 overflow-y-auto">
             <ul className="px-4 py-1.5 divide-y divide-neutral-950/10">
               {store.nodes.map((n) => (
                 <li className="py-2" key={n.id}>

@@ -14,13 +14,27 @@ export function Node({ node }: { node: HtmlNode }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [element, setElement] = useState<HTMLElement | null>(null);
 
+  const isActive = activeNode === node.id;
+
   useEffect(() => {
     if (!ref.current) return;
     ref.current.innerHTML = node.html;
     setElement(ref.current.querySelector(":first-child") as HTMLElement);
   }, [node.html]);
 
-  const isActive = activeNode === node.id;
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!element) return;
+      // if cmd + c
+      if (e.metaKey && e.key === "c") {
+        navigator.clipboard.writeText(element.outerHTML);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [element]);
 
   useEffect(() => {
     return onHighlightElement((e) => {
@@ -66,7 +80,7 @@ export function Node({ node }: { node: HtmlNode }) {
       <textarea
         ref={inputRef}
         className={clsx(
-          "absolute top-full mt-2 rounded-lg ring ring-neutral-950/10 bg-neutral-50 min-h-9 w-max max-w-[350px] px-3.5 py-2.5 font-mono text-xs focus-visible:outline-none transition-all origin-top left-1/2 -translate-x-1/2 resize-none",
+          "absolute top-full mt-2 rounded-lg ring ring-neutral-950/10 bg-neutral-50 min-h-9 w-max max-w-[500px] px-3.5 py-2.5 font-mono text-xs focus-visible:outline-none transition-all origin-top left-1/2 -translate-x-1/2 resize-none",
           isActive ? "scale-100 opacity-100" : "scale-95 opacity-0",
         )}
         spellCheck={false}
@@ -80,6 +94,8 @@ export function Node({ node }: { node: HtmlNode }) {
           if (!element) return;
           element.className = e.target.value;
         }}
+        onPaste={(e) => e.stopPropagation()}
+        onPointerMove={(e) => e.stopPropagation()}
       />
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: only capturing the click event here */}
       <div
@@ -92,6 +108,10 @@ export function Node({ node }: { node: HtmlNode }) {
             : "hover:ring",
         )}
         onMouseDown={() => setActiveNode(node.id)}
+        onPaste={(e) => {
+          e.stopPropagation();
+          // TODO: insert the pasted content as a child of the element
+        }}
         onClick={(e) => {
           e.preventDefault();
           const parent = e.target as HTMLElement;
