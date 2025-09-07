@@ -32,7 +32,7 @@ export default function Home() {
   return (
     <div className="h-screen bg-neutral-100">
       <PanelGroup direction="horizontal">
-        <Panel minSize={70} className="!overflow-visible">
+        <Panel minSize={70} className="!overflow-visible flex flex-col">
           <header className="p-4 text-neutral-400">
             <h1 className="font-title font-bold text-xl">plop</h1>
           </header>
@@ -84,11 +84,11 @@ function Canvas() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const { store, actions } = useStore();
   return (
-    <div className="isolate relative h-full">
+    <div className="isolate relative grow flex flex-col">
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
       <div
         ref={canvasRef}
-        className="relative flex items-center justify-center h-full"
+        className="relative flex items-center justify-center grow"
         onClick={(e) => {
           if (!store.tool) {
             if (
