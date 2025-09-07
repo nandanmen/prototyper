@@ -33,6 +33,9 @@ export default function Home() {
     <div className="h-screen bg-neutral-100">
       <PanelGroup direction="horizontal">
         <Panel minSize={70} className="!overflow-visible">
+          <header className="p-4 text-neutral-400">
+            <h1 className="font-title font-bold text-xl">plop</h1>
+          </header>
           <Canvas />
         </Panel>
         <PanelResizeHandle className="flex items-center">

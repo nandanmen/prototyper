@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Gluten } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 
@@ -10,6 +10,11 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-mono",
+  subsets: ["latin"],
+});
+
+const title = Gluten({
+  variable: "--font-title",
   subsets: ["latin"],
 });
 
@@ -27,7 +32,7 @@ export default function RootLayout({
     <html lang="en">
       <Script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" />
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${title.variable} ${geistMono.variable} antialiased`}
       >
         {children}
       </body>

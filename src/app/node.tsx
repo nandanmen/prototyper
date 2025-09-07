@@ -52,6 +52,8 @@ export function Node({ node }: { node: HtmlNode }) {
       setTimeout(() => {
         inputRef.current?.focus();
       }, 10);
+    } else {
+      setElement(null);
     }
   }, [element, isActive]);
 
@@ -80,7 +82,7 @@ export function Node({ node }: { node: HtmlNode }) {
       <textarea
         ref={inputRef}
         className={clsx(
-          "absolute top-full mt-2 rounded-lg ring ring-neutral-950/10 bg-neutral-50 min-h-9 w-max max-w-[500px] px-3.5 py-2.5 font-mono text-xs focus-visible:outline-none transition-all origin-top left-1/2 -translate-x-1/2 resize-none",
+          "absolute top-full mt-2 rounded-lg ring ring-neutral-950/10 bg-neutral-50 min-h-9 w-max max-w-[500px] px-3.5 py-2.5 font-mono text-xs focus-visible:outline-none transition-all origin-top left-1/2 -translate-x-1/2 resize-none shadow-lg shadow-black/5",
           isActive ? "scale-100 opacity-100" : "scale-95 opacity-0",
         )}
         spellCheck={false}
@@ -107,7 +109,12 @@ export function Node({ node }: { node: HtmlNode }) {
             ? "ring-2"
             : "hover:ring",
         )}
-        onMouseDown={() => setActiveNode(node.id)}
+        onMouseDown={(e) => {
+          setActiveNode(node.id);
+          if (!tool) {
+            setElement(e.target as HTMLElement);
+          }
+        }}
         onPaste={(e) => {
           e.stopPropagation();
           // TODO: insert the pasted content as a child of the element
@@ -130,8 +137,6 @@ export function Node({ node }: { node: HtmlNode }) {
             parent.appendChild(newDiv);
             setElement(newDiv);
             setTool(null);
-          } else {
-            setElement(parent);
           }
         }}
       />
