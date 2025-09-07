@@ -8,33 +8,23 @@ import { useStore } from "./store";
 export function Node({ node }: { node: HtmlNode }) {
   const {
     store: { tool, activeNode },
-    actions: { setTool, setActiveNode },
+    actions: { setTool, setActiveNode, deleteNode },
   } = useStore();
-  const ref = useRef<HTMLDivElement>(null);
+
+  const nodeRef = useRef<HTMLButtonElement>(null);
+  const contentWrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [element, setElement] = useState<HTMLElement | null>(null);
 
   const isActive = activeNode === node.id;
 
   useEffect(() => {
-    if (!ref.current) return;
-    ref.current.innerHTML = node.html;
-    setElement(ref.current.querySelector(":first-child") as HTMLElement);
+    if (!contentWrapperRef.current) return;
+    contentWrapperRef.current.innerHTML = node.html;
+    setElement(
+      contentWrapperRef.current.querySelector(":first-child") as HTMLElement,
+    );
   }, [node.html]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!element) return;
-      // if cmd + c
-      if (e.metaKey && e.key === "c") {
-        navigator.clipboard.writeText(element.outerHTML);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [element]);
 
   useEffect(() => {
     return onHighlightElement((e) => {
@@ -49,32 +39,62 @@ export function Node({ node }: { node: HtmlNode }) {
     if (!inputRef.current) return;
     inputRef.current.value = element?.className ?? "";
     if (isActive) {
-      setTimeout(() => {
+      /* setTimeout(() => {
         inputRef.current?.focus();
-      }, 10);
+      }, 10); */
     } else {
-      setElement(null);
+      setTimeout(
+        () => {
+          setElement(null);
+        },
+        // wait until the animation completes
+        150,
+      );
     }
   }, [element, isActive]);
 
   useEffect(() => {
-    if (!element) return;
-    if (!isActive) return;
-    element.style.outlineWidth = "1px";
-    element.style.outlineStyle = "solid";
+    if (!element || !isActive) return;
+    element.style.outline = "1px solid var(--color-blue-500)";
     return () => {
-      element.style.outlineWidth = "";
-      element.style.outlineStyle = "";
+      element.style.outline = "";
     };
   }, [element, isActive]);
 
   return (
     <motion.button
+      ref={nodeRef}
       data-node-id={node.id}
       className={clsx("text-left absolute", isActive && "z-10")}
       drag
       dragMomentum={false}
       key={node.id}
+      onKeyDown={(e) => {
+        if (!element || !isActive) return;
+        if (document.activeElement !== nodeRef.current)
+          /**
+           * We want to ignore the keydown event if the user is currently
+           * focused on an input or contentEditable element.
+           */
+          return;
+        if (e.key === "Backspace" || e.key === "Delete") {
+          /**
+           * Delete the node altogether if it's the first child of the node,
+           * otherwise just remove the element.
+           */
+          if (element.parentElement === contentWrapperRef.current) {
+            deleteNode(node.id);
+          } else {
+            element.remove();
+          }
+          return;
+        }
+        if (e.metaKey && e.key === "c") {
+          // if cmd + c
+          navigator.clipboard.writeText(element.outerHTML);
+          return;
+        }
+      }}
     >
       <p className="absolute bottom-full font-mono text-xs text-neutral-500 mb-1">
         {node.id.split("-").at(0)?.slice(0, 4)}
@@ -99,13 +119,12 @@ export function Node({ node }: { node: HtmlNode }) {
         onPaste={(e) => e.stopPropagation()}
         onPointerMove={(e) => e.stopPropagation()}
       />
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: only capturing the click event here */}
       <div
-        ref={ref}
+        ref={contentWrapperRef}
         className={clsx(
           "w-max ring-blue-500 hover:not-has-hover:ring",
           "[&_*]:hover:not-has-hover:outline [&_*]:focus:outline [&_*]:outline-blue-500",
-          isActive && element !== ref.current?.firstChild
+          isActive && element !== contentWrapperRef.current?.firstChild
             ? "ring-2"
             : "hover:ring",
         )}
@@ -115,9 +134,43 @@ export function Node({ node }: { node: HtmlNode }) {
             setElement(e.target as HTMLElement);
           }
         }}
+        onDoubleClick={(e) => {
+          e.preventDefault();
+          const target = e.target as HTMLElement;
+          // Make the clicked element editable
+          if (target.tagName === "P" || target.tagName === "SPAN") {
+            target.contentEditable = "true";
+            target.focus();
+            // Select all text for easy editing
+            const range = document.createRange();
+            range.selectNodeContents(target);
+            const selection = window.getSelection();
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+          }
+        }}
         onPaste={(e) => {
           e.stopPropagation();
           // TODO: insert the pasted content as a child of the element
+        }}
+        onKeyDown={(e) => {
+          if (!element || !isActive) return;
+          if (
+            e.key === "Enter" &&
+            (e.target as HTMLElement).contentEditable === "true"
+          ) {
+            // Handle Enter key to finish editing
+            e.preventDefault();
+            (e.target as HTMLElement).blur();
+            return;
+          }
+        }}
+        onBlur={(e) => {
+          // When an element loses focus, make it non-editable and update the node
+          const target = e.target as HTMLElement;
+          if (target.contentEditable === "true") {
+            target.contentEditable = "false";
+          }
         }}
         onClick={(e) => {
           e.preventDefault();

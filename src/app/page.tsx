@@ -19,6 +19,7 @@ export default function Home() {
   useEffect(() => {
     // on paste, create a new node with the pasted html
     const handlePaste = (event: ClipboardEvent) => {
+      if (document.activeElement?.closest("[data-node-id]")) return;
       const text = event.clipboardData?.getData("text/plain");
       if (!text) return;
       actions.addNode(text);

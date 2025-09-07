@@ -32,6 +32,12 @@ export const useStore = () => {
           nodes: [...prev.nodes, { id: crypto.randomUUID(), html }],
         }));
       },
+      deleteNode: (id: string) => {
+        setStore((prev) => ({
+          ...prev,
+          nodes: prev.nodes.filter((node) => node.id !== id),
+        }));
+      },
     };
   }, [setStore]);
 
