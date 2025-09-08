@@ -62,7 +62,7 @@ export default function Home() {
         <Panel
           defaultSize={18}
           minSize={18}
-          className="bg-neutral-100 relative z-10"
+          className="bg-[oklch(98%_0_0)] relative z-10"
           collapsible
           ref={sidebarRef}
         >

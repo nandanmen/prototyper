@@ -43,13 +43,14 @@ export function Node({ node }: { node: HtmlNode }) {
         inputRef.current?.focus();
       }, 10); */
     } else {
-      setTimeout(
+      const timeout = setTimeout(
         () => {
           setElement(null);
         },
         // wait until the animation completes
         150,
       );
+      return () => clearTimeout(timeout);
     }
   }, [element, isActive]);
 
@@ -61,6 +62,51 @@ export function Node({ node }: { node: HtmlNode }) {
     };
   }, [element, isActive]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!element || !isActive) return;
+      const activeElement = document.activeElement as HTMLElement;
+      if (
+        activeElement?.tagName === "INPUT" ||
+        activeElement?.tagName === "TEXTAREA" ||
+        activeElement?.contentEditable === "true"
+      )
+        /**
+         * We want to ignore the keydown event if the user is currently
+         * focused on an input or contentEditable element.
+         */
+        return;
+      if (e.key === "Backspace" || e.key === "Delete") {
+        /**
+         * Delete the node altogether if it's the first child of the node,
+         * otherwise just remove the element.
+         */
+        if (element.parentElement === contentWrapperRef.current) {
+          deleteNode(node.id);
+        } else {
+          element.remove();
+        }
+        return;
+      }
+      if (e.metaKey && e.key === "c") {
+        navigator.clipboard.writeText(element.outerHTML);
+        return;
+      }
+      if (e.metaKey && e.key === "v") {
+        e.preventDefault();
+        navigator.clipboard.readText().then((text) => {
+          const div = document.createElement("div");
+          div.innerHTML = text;
+          element?.appendChild(div);
+        });
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  });
+
   return (
     <motion.button
       ref={nodeRef}
@@ -69,32 +115,6 @@ export function Node({ node }: { node: HtmlNode }) {
       drag
       dragMomentum={false}
       key={node.id}
-      onKeyDown={(e) => {
-        if (!element || !isActive) return;
-        if (document.activeElement !== nodeRef.current)
-          /**
-           * We want to ignore the keydown event if the user is currently
-           * focused on an input or contentEditable element.
-           */
-          return;
-        if (e.key === "Backspace" || e.key === "Delete") {
-          /**
-           * Delete the node altogether if it's the first child of the node,
-           * otherwise just remove the element.
-           */
-          if (element.parentElement === contentWrapperRef.current) {
-            deleteNode(node.id);
-          } else {
-            element.remove();
-          }
-          return;
-        }
-        if (e.metaKey && e.key === "c") {
-          // if cmd + c
-          navigator.clipboard.writeText(element.outerHTML);
-          return;
-        }
-      }}
     >
       <p className="absolute bottom-full font-mono text-xs text-neutral-500 mb-1">
         {node.id.split("-").at(0)?.slice(0, 4)}
@@ -148,10 +168,6 @@ export function Node({ node }: { node: HtmlNode }) {
             selection?.removeAllRanges();
             selection?.addRange(range);
           }
-        }}
-        onPaste={(e) => {
-          e.stopPropagation();
-          // TODO: insert the pasted content as a child of the element
         }}
         onKeyDown={(e) => {
           if (!element || !isActive) return;

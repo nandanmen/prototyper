@@ -42,14 +42,14 @@ function ElementInfo({
     <div className="font-mono text-sm">
       <motion.button
         className="flex gap-2 w-full hover:bg-neutral-200"
-        onHoverStart={() => {
+        /* onHoverStart={() => {
           el.style.outlineWidth = "1px";
           el.style.outlineStyle = "solid";
         }}
         onHoverEnd={() => {
           el.style.outlineWidth = "";
           el.style.outlineStyle = "";
-        }}
+        }} */
         onClick={() => dispatchHighlightElement({ nodeId, element: el })}
       >
         <span className="lowercase font-medium">{el.tagName}</span>
